@@ -4,11 +4,13 @@ import java.util.Iterator;
 public class Processor {
 	int no_blocks;
 	int proc_index;
+	int state_changes;
 	ArrayList<Block> cache;
 	Processor(int size_c, int size_b, int proc_i){
 		no_blocks = size_c/size_b;
 		proc_index = proc_i;
 		cache = new ArrayList<>();
+		state_changes = 0;
 	}
 	int search(int mem_index){
 		Block b; 
@@ -27,6 +29,7 @@ public class Processor {
 			if(b.state == State.MODIFIED || b.state == State.OWNED)
 				Main.bus.bus_operation(Request.MEM_W, mem_index, b.value);
 			b.state = State.INVALID;
+			state_changes++;
 			cache.set(index, b);
 		}
 	}
@@ -35,6 +38,8 @@ public class Processor {
 		if(index != -1){
 			if(cache.get(index).state == State.MODIFIED)
 				Main.bus.bus_operation(Request.MEM_W, mem_index, cache.get(index).value);
+			if(cache.get(index).state != State.SHARED)
+				state_changes++;
 			cache.get(index).state = State.SHARED;
 			return index;
 		}
@@ -49,6 +54,7 @@ public class Processor {
 			if(b.state == State.MODIFIED || b.state == State.OWNED){
 				// System.out.println("writing evicted block to memory");
 				Main.bus.bus_operation(Request.MEM_W, b.mem_index, b.value);
+				state_changes++;
 			}
 		}
 		return -1;
@@ -77,6 +83,7 @@ public class Processor {
 				b.state = State.EXCLUSIVE;
 			cache.add(b);
 		}
+		state_changes++;
 		return value;
 	}
 	
@@ -86,6 +93,7 @@ public class Processor {
 			return cache.get(index).value;
 		}
 		Block bloc = Main.bus.get_block_moesi(mem_index, proc_index);
+		state_changes++;
 		long value;
 		State state;
 		if(bloc == null){
@@ -114,6 +122,8 @@ public class Processor {
 	}
 	
 	void get_ownership(int index){
+		if(cache.get(index).state != State.OWNED)
+			state_changes++;
 		cache.get(index).state = State.OWNED;
 	}
 	
@@ -129,6 +139,8 @@ public class Processor {
 		}
 		else if(cache.get(index).state == State.SHARED)
 			Main.bus.bus_operation(Request.RFO, mem_index, proc_index);
+		if(cache.get(index).state != State.MODIFIED)
+			state_changes++;
 		cache.get(index).state = State.MODIFIED;
 		cache.get(index).value = value;
 	}
@@ -149,8 +161,10 @@ public class Processor {
 		else if(cache.get(index).state == State.SHARED){
 			Main.bus.bus_operation(Request.RFO, mem_index, proc_index);
 			cache.get(index).state = State.MODIFIED;
+			state_changes++;
 		}else{
 			cache.get(index).state = State.MODIFIED;
+			state_changes++;
 		}
 		cache.get(index).value = value;
 		

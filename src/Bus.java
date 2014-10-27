@@ -25,6 +25,7 @@ public class Bus {
 		return -1;
 	}
 	
+	// This function gets a block from the other processor if it is modified or owned
 	Block get_block_moesi(int mem_index, long proc_index){
 		bus_operations++;
 		int other_proc = (int)(1-proc_index);

@@ -65,11 +65,13 @@ public class Main {
 			}
 		}
 		System.out.println("MESI : \n\tbus operations : " + bus.bus_operations + "    memory operations : "
-					+ memory.memory_operations);
+					+ memory.memory_operations + "\t state transitions : " + proc[0].state_changes+proc[1].state_changes);
 	//	System.out.println("************************************************************"
 	//			+ "\nMOESI\n***********************************************************");
 		proc[0].cache.clear();
+		proc[0].state_changes = 0;
 		proc[1].cache.clear();
+		proc[1].state_changes = 0;
 		bus.bus_operations = 0;
 		memory.memory_operations = 0;
 		for(int i = 0; i < 1000000; i++){
@@ -104,7 +106,7 @@ public class Main {
 			}
 		}
 		System.out.println("MOESI : \n\tbus operations : " + bus.bus_operations + "    memory operations : "
-				+ memory.memory_operations);
+				+ memory.memory_operations + "\t state transitions : " + proc[0].state_changes+proc[1].state_changes);
 	}
 }
 
